@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Google Map & Street View 同期表示サンプル</title>
+  <style>
+    #container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+    }
+    #map, #street-view {
+      flex: 1 1 0;
+      height: 100vh;
+      min-width: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="map"></div>
+    <div id="street-view"></div>
+  </div>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCqAJnZ7H3ZLuBJD-GKBuHYikJPcsbf68E"></script>
+  <script>
+    let map, panorama;
+    let syncFromMap = false;
+    let syncFromPano = false;
+
+    function initMap() {
+      const initialPos = { lat: 35.658034, lng: 139.701636 }; // 渋谷駅
+
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: initialPos,
+        zoom: 17,
+        streetViewControl: false
+      });
+
+      panorama = new google.maps.StreetViewPanorama(
+        document.getElementById('street-view'), {
+          position: initialPos,
+          pov: { heading: 165, pitch: 0 },
+          visible: true
+        }
+      );
+
+      // Mapで中心位置が変わったときStreetViewも追従
+      map.addListener('center_changed', () => {
+        if (syncFromPano) return;
+        syncFromMap = true;
+        const center = map.getCenter();
+        panorama.setPosition(center);
+        syncFromMap = false;
+      });
+
+      // StreetViewで位置が変わったときMapも追従
+      panorama.addListener('position_changed', () => {
+        if (syncFromMap) return;
+        syncFromPano = true;
+        const pos = panorama.getPosition();
+        map.setCenter(pos);
+        syncFromPano = false;
+      });
+    }
+
+    window.onload = initMap;
+  </script>
+</body>
+</html>

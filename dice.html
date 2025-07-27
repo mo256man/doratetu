@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>右下でぐるぐる回るサイコロ & click meで投げる&停止後ズーム</title>
+  <style>
+    body { margin: 0; background: #eee; overflow: hidden;}
+    #result { position: absolute; top: 10px; left: 10px; font-size: 18px; background: #fff; padding: 7px 13px; border-radius: 7px; box-shadow: 0 2px 8px #aaa; z-index: 10;}
+    #clickme {
+      position: absolute;
+      right: 40px;
+      bottom: 40px;
+      font-size: 26px;
+      padding: 18px 32px;
+      background: #fffb;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px #aaa;
+      cursor: pointer;
+      user-select: none;
+      z-index: 20;
+      transition: background 0.2s;
+    }
+    #clickme:hover { background: #ffd; }
+    canvas { display: block;}
+  </style>
+</head>
+<body>
+  <div id="result">上面：-</div>
+  <div id="clickme">click me</div>
+  <!-- 指定された画像3枚 -->
+  <img id="img1" src="https://upload.wikimedia.org/wikipedia/commons/c/cb/The_Blue_Marble_%28remastered%29.jpg" style="display:none;">
+  <img id="img2" src="https://upload.wikimedia.org/wikipedia/commons/d/dd/Full_Moon_Luc_Viatour.jpg" style="display:none;">
+  <img id="img3" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Solar_eclipse_1999_4.jpg" style="display:none;">
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.156.1/build/three.module.js";
+    import { OrbitControls } from "https://unpkg.com/three@0.156.1/examples/jsm/controls/OrbitControls.js?module";
+    import { RoundedBoxGeometry } from "https://unpkg.com/three@0.156.1/examples/jsm/geometries/RoundedBoxGeometry.js?module";
+    import * as CANNON from "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js";
+
+    // シーン・カメラ・レンダラー
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf0f0f0);
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+
+    // 初期カメラ設定
+    const INIT_CAM_POS = new THREE.Vector3(5, 7, 10);
+    const INIT_TARGET = new THREE.Vector3(2, 1, 2);
+    const INIT_UP = new THREE.Vector3(0, 1, 0);
+
+    camera.position.copy(INIT_CAM_POS);
+    camera.up.copy(INIT_UP);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // コントロール
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.copy(INIT_TARGET);
+    controls.update();
+
+    // ライト
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(8, 12, 10);
+    scene.add(dirLight);
+
+    // Cannon物理世界
+    const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
+    world.broadphase = new CANNON.NaiveBroadphase();
+    world.solver.iterations = 12;
+
+    // 地面
+    const groundBody = new CANNON.Body({
+      type: CANNON.Body.STATIC,
+      shape: new CANNON.Plane(),
+    });
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    world.addBody(groundBody);
+
+    const groundMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(20, 20),
+      new THREE.MeshPhongMaterial({ color: 0xffffff, opacity: 0.4, transparent: true })
+    );
+    groundMesh.position.y = 0;
+    groundMesh.rotation.x = -Math.PI / 2;
+    scene.add(groundMesh);
+
+    // 画像テクスチャ生成
+    function loadTextureFromImg(imgId) {
+      return new THREE.TextureLoader().load(document.getElementById(imgId).src);
+    }
+    const textures = [
+      loadTextureFromImg('img1'),
+      loadTextureFromImg('img2'),
+      loadTextureFromImg('img3'),
+    ];
+
+    // サイコロのマテリアル配列 (3画像×2面ずつ)
+    const faceImages = [
+      0, // +X
+      0, // -X
+      1, // +Y
+      1, // -Y
+      2, // +Z
+      2  // -Z
+    ];
+    const diceMaterials = faceImages.map(i =>
+      new THREE.MeshPhongMaterial({ map: textures[i], color: 0xffffff })
+    );
+
+    // サイコロ（物理・見た目）生成（角丸！）
+    const diceSize = 1;
+    const diceRadius = 0.2;
+    const diceGeometry = new RoundedBoxGeometry(diceSize, diceSize, diceSize, 8, diceRadius);
+    const diceMesh = new THREE.Mesh(diceGeometry, diceMaterials);
+    diceMesh.castShadow = true;
+    scene.add(diceMesh);
+
+    // Cannon-esには角丸はないので通常のBoxで近似
+    const diceShape = new CANNON.Box(new CANNON.Vec3(diceSize / 2, diceSize / 2, diceSize / 2));
+    const diceBody = new CANNON.Body({
+      mass: 1,
+      position: new CANNON.Vec3(3, 1, 3), // 右下に初期配置
+      shape: diceShape,
+      angularDamping: 0.35,
+      linearDamping: 0.18,
+    });
+    world.addBody(diceBody);
+
+    // --- restitution 追加ここから ---
+    // マテリアルを作成
+    const diceMaterial = new CANNON.Material("diceMat");
+    diceMaterial.restitution = 0.7; // サイコロの反発係数
+
+    const groundMaterial = new CANNON.Material("groundMat");
+    groundMaterial.restitution = 0.7; // 地面の反発係数
+
+    diceBody.material = diceMaterial;
+    groundBody.material = groundMaterial;
+
+    // サイコロと地面の接触時の反発係数（最優先される）
+    const contactMaterial = new CANNON.ContactMaterial(diceMaterial, groundMaterial, {
+      restitution: 0.7
+    });
+    world.addContactMaterial(contactMaterial);
+    // --- restitution 追加ここまで ---
+
+    // --- カメラの補間目標を先に宣言 ---
+    let camTargetPos = INIT_CAM_POS.clone();
+    let camTargetLook = INIT_TARGET.clone();
+    let camTargetUp = INIT_UP.clone();
+    const camLerpAlpha = 0.10; // 補間速度
+
+    // ぐるぐる回転用
+    let spinningAngle = 0;
+    function getSpinningQuaternion(angle) {
+      const qy = new CANNON.Quaternion();
+      qy.setFromAxisAngle(new CANNON.Vec3(0,1,0), angle);
+      const qx = new CANNON.Quaternion();
+      qx.setFromAxisAngle(new CANNON.Vec3(1,0,0), angle*1.6);
+      return qy.mult(qx);
+    }
+
+    // サイコロを右下でぐるぐる回す
+    function setSpinning() {
+      diceBody.type = CANNON.Body.KINEMATIC;
+      diceBody.velocity.setZero();
+      diceBody.angularVelocity.setZero();
+      diceBody.position.set(3, 1, 3);
+      diceBody.quaternion = getSpinningQuaternion(spinningAngle);
+      // カメラも右下全体を見下ろすように戻す（滑らかに）
+      camTargetPos.copy(INIT_CAM_POS);
+      camTargetLook.copy(INIT_TARGET);
+      camTargetUp.copy(INIT_UP);
+    }
+    setSpinning();
+
+    // サイコロを投げ出す
+    function throwDice() {
+      // 現在のぐるぐる回転姿勢を反映
+      diceBody.quaternion = getSpinningQuaternion(spinningAngle);
+      diceBody.type = CANNON.Body.DYNAMIC;
+      diceBody.position.set(3, 1, 3);
+      diceBody.velocity.set(3, 7, -5);
+      diceBody.angularVelocity.set(
+        (Math.random() - 0.5) * 12,
+        (Math.random() - 0.5) * 12,
+        (Math.random() - 0.5) * 12
+      );
+      document.getElementById("result").innerText = "上面：-";
+      // カメラを右下全体を見る位置にスムーズに戻す
+      camTargetPos.copy(INIT_CAM_POS);
+      camTargetLook.copy(INIT_TARGET);
+      camTargetUp.copy(INIT_UP);
+    }
+
+    document.getElementById("clickme").onclick = throwDice;
+
+    // サイコロの上面画像インデックスを取得
+    const faceNormals = [
+      new THREE.Vector3(1, 0, 0),   // +X
+      new THREE.Vector3(-1, 0, 0),  // -X
+      new THREE.Vector3(0, 1, 0),   // +Y
+      new THREE.Vector3(0, -1, 0),  // -Y
+      new THREE.Vector3(0, 0, 1),   // +Z
+      new THREE.Vector3(0, 0, -1),  // -Z
+    ];
+    const faceUps = [
+      new THREE.Vector3(0, 1, 0),    // +X面の上: Y+
+      new THREE.Vector3(0, 1, 0),    // -X面の上: Y+
+      new THREE.Vector3(0, 0, -1),   // +Y面の上: Z-
+      new THREE.Vector3(0, 0, 1),    // -Y面の上: Z+
+      new THREE.Vector3(0, 1, 0),    // +Z面の上: Y+
+      new THREE.Vector3(0, 1, 0),    // -Z面の上: Y+
+    ];
+    function getUpFaceIndex(mesh) {
+      let maxY = -Infinity, upIdx = 0;
+      for (let i = 0; i < 6; i++) {
+        const worldNormal = faceNormals[i].clone().applyQuaternion(mesh.quaternion);
+        if (worldNormal.y > maxY) {
+          maxY = worldNormal.y;
+          upIdx = i;
+        }
+      }
+      return upIdx;
+    }
+
+    // --- アニメーション
+    let lastUpIdx = null;
+    let cameraOnTop = false;
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // ぐるぐる回転: KINEMATICの時だけ
+      if (diceBody.type === CANNON.Body.KINEMATIC) {
+        spinningAngle += 0.14; // ←これで高速回転
+        diceBody.quaternion = getSpinningQuaternion(spinningAngle);
+      }
+
+      world.step(1 / 60);
+
+      // 物理→見た目へ同期
+      diceMesh.position.copy(diceBody.position);
+      diceMesh.quaternion.copy(diceBody.quaternion);
+
+      // サイコロ停止判定
+      if (diceBody.type === CANNON.Body.DYNAMIC) {
+        const v = diceBody.velocity, w = diceBody.angularVelocity;
+        if (v.length() < 0.05 && w.length() < 0.05 && diceBody.position.y < 1.05) {
+          // 停止したらカメラをズームして上面正面に
+          if (!cameraOnTop) {
+            const upIdx = getUpFaceIndex(diceMesh);
+            const center = diceMesh.position.clone();
+            const quat = diceMesh.quaternion;
+            const normal = faceNormals[upIdx].clone().applyQuaternion(quat);
+            const upVec = faceUps[upIdx].clone().applyQuaternion(quat);
+            const camDist = 3.1; // ズーム距離
+            const camPos = center.clone().add(normal.clone().multiplyScalar(camDist));
+            camTargetPos.copy(camPos);
+            camTargetLook.copy(center);
+            camTargetUp.copy(upVec);
+            cameraOnTop = true;
+          }
+          // 停止したら右下ぐるぐるは少し間を置いて戻す
+          setTimeout(() => {
+            setSpinning();
+            cameraOnTop = false;
+          }, 1400);
+        }
+      }
+
+      // 上面判定＆表示
+      const upIdx = getUpFaceIndex(diceMesh);
+      if (upIdx !== lastUpIdx) {
+        lastUpIdx = upIdx;
+        const imgIdx = faceImages[upIdx];
+        document.getElementById("result").innerText =
+          "上面: 画像" + (imgIdx + 1) + "（面 " + upIdx + "）";
+      }
+
+      // カメラを滑らかに目標位置へ
+      camera.position.lerp(camTargetPos, camLerpAlpha);
+      camera.up.lerp(camTargetUp, camLerpAlpha);
+      controls.target.lerp(camTargetLook, camLerpAlpha);
+      controls.update();
+      camera.lookAt(controls.target);
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // リサイズ
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

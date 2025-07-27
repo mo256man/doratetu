@@ -1,0 +1,416 @@
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#title, #main {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+#title {
+  flex-direction: column;
+  background-color: #a0d2eb;
+}
+
+#main {
+  background-color: white;
+}
+
+#question {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: center;
+}
+
+#answer {
+  height:200px;
+}
+
+#left {
+  width: 50%;
+  height: 100%;
+  background-color: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+#left_lower {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.right {
+  flex: 1;
+  height: 100%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#titleBall {
+  padding: 0 10%;
+  display: flex;
+  justify-content: space-between;
+  background-color: yellow;
+}
+
+.ball {
+  border-radius: 50%;
+  font-weight: bold;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  line-height: 1;
+  margin: 0 10px;
+  /* ベースの黄色と光沢の白を重ねる */
+  background:
+    radial-gradient(circle at 10px 10px, #fff 0%, #fff6 40%, transparent 70%),
+    radial-gradient(circle at 60% 60%, #ffe066 0%, #ffd700 70%, #ffc300 100%);
+  box-shadow: 0 4px 16px #fc3c 0;
+  border: 2px solid #fff8;
+}
+
+.ball_main {
+  width: 50px;
+  height: 50px;
+  font-size: xx-large;
+}
+
+.ball_count {
+  width: 200px;
+  height: 200px;
+  font-size: 150px;
+}
+
+.font_guessr {
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+  color: white;
+  font-size: 100px;
+  -webkit-text-stroke: 20px #CF142B;
+  paint-order: stroke;
+}
+
+.font_sayan {
+  font-family: "Saiyan Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+  color: yellow;
+  font-size: 100px;
+  -webkit-text-stroke: 10px black;
+  paint-order: stroke;
+}
+
+.title_tesu {
+  height: 100px;
+  width: auto;
+}
+
+.title_container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#btnStart {
+  font-family: "Saiyan Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+  color: yellow;
+  font-size: 50px;
+  -webkit-text-stroke: 5px black;
+  paint-order: stroke;
+  cursor: pointer;
+  border: 2px solid black;
+  border-radius: 10px;
+  margin: 10px;
+  padding: 10px 20px;
+  background-color: lightblue;
+  display: inline-block;
+}
+
+#count_back {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, blue, lightblue, blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.count_num {
+  font-size: 160px;
+}
+
+.clickme {
+  position: absolute;
+  right: 40px;
+  bottom: 40px;
+  font-size: 26px;
+  padding: 18px 32px;
+  background: #fffb;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px #aaa;
+  cursor: pointer;
+  user-select: none;
+  z-index: 20;
+  transition: background 0.2s;
+}
+
+.dice-clickme:hover {
+  background: #ffd;
+}
+
+.itemTable {
+  border-collapse: separate;
+  border-spacing: 2px;
+  border: 5px solid #faaa5a;
+  background-color: #edefe4;
+  border-radius: 10px;
+  font-size: xx-large;
+}
+
+.itemTable td:first-child {
+  width: 300px;
+  padding: 2px 10px;
+}
+
+.itemTable td:nth-child(2) {
+  width: 200px;
+  text-align: right;
+  padding: 2px 10px;
+}
+
+.dragon_radar_container {
+  position: relative;
+  width: 600px;
+  height: 600px;
+}
+
+.dragon_radar {
+  width: 600px;
+  height: 600px;
+}
+
+.street_view_container {
+  position: relative;
+  width: 600px;
+  height: 600px;
+  border: 2px solid blue;
+}
+
+.street_view {
+  position: relative;
+  width: 600px;
+  height: 600px;
+}
+
+.div.map, .radar, .radar_case, .radar_mesh {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+
+div.googleMap {
+  border-radius: 50%;
+  width: 560px;
+  height: 560px;
+  margin: 20px;
+  border: 1px solid red;
+}
+
+.radar {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: 50%;
+}
+
+.radar_case {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: radial-gradient(#0000 65%,
+    #555 66%, #fff 68%, #707070 70%,
+    #000 71%, #0000 71%);
+}
+
+.radar_mesh {
+    width: 560px;
+    height:560px;
+    pointer-events: none;
+    border-radius: 50%;
+    background-color: #2802 ;
+    background-image:
+        repeating-linear-gradient(to bottom, #080 0, #080 1px, transparent 1px, transparent calc(100% / 10)),
+        repeating-linear-gradient(to right, #080 0, #080 1px, transparent 1px, transparent calc(100% / 10));
+}
+
+  .radar_scanner {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-image: conic-gradient(transparent 0deg 80%, #282);
+    animation: scan 2s linear infinite;
+    transform-origin: center;
+  }
+
+  /* Scene */
+  *::after,
+  *::before,
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Animations */
+  @keyframes scan {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+.return_title {
+  padding: "20px";
+  background-color: "#ff0";
+  border: "1px solid #ccc";
+  cursor: "pointer";
+  width: "200px";
+  text-align: "center";
+}
+
+.card {
+  width: 100px;
+  height: 200px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  position: relative;
+  perspective: 600px;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, opacity 0.2s, background 0.2s;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+}
+
+.card.selected {
+  transform: translateY(-20px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.20);
+  border-color: #007aff;
+  z-index: 1;
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  position: relative;
+  transition: transform 0.5s cubic-bezier(0.4,0.2,0.2,1);
+  transform-style: preserve-3d;
+  height: 100%;
+  width: 100%;
+}
+
+.card.faceup .card-inner {
+  transform: rotateY(0deg);
+}
+.card:not(.faceup) .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  position: absolute;
+  top: 0; left: 0;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.card-front {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  background: white;
+  z-index: 2;
+}
+
+.overlay{
+  position: fixed;
+  font-size: 600px;
+  font-weight: 900;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.shutter {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    #aaa 0px,
+    #aaa 6px,
+    #ccc 6px,
+    #ccc 18px
+  );
+  z-index: 2;
+  transition: transform 2.5s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+}
+
+.shutter.open {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+

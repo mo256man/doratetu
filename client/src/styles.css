@@ -1,0 +1,520 @@
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+html {
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+  color: black;
+}
+
+#title, #game, #nextStage, #quiz {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  overflow: hidden;
+  background: linear-gradient(#05FBFF, #1D62F0 ) fixed;
+}
+
+#title {
+  flex-direction: column;
+}
+
+#quiz {
+  flex-direction: row;
+  gap: 100px;
+}
+
+.title_container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.font_dragon {
+    background: linear-gradient(0deg, #7DD9DD 0 50%, #488ABB 50%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: 'Anton', 'Kosugi', sans-serif;
+    font-size: 90px;
+    text-align: center;
+    -webkit-text-stroke: 2.5px #000;
+}
+
+.font_sayan {
+  font-family: "Saiyan Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+  color: yellow;
+  -webkit-text-stroke: 10px black;
+  paint-order: stroke;
+}
+
+.font_guessr {
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+  color: white;
+  -webkit-text-stroke: 20px #CF142B;
+  paint-order: stroke;
+}
+
+.momotetu50 {
+  height: 60px;
+  vertical-align: middle;
+}
+
+.title_tesu {
+  height: 100px;
+  width: auto;
+}
+
+.fs100 {
+  font-size: 100px;
+}
+
+.fs50 {
+  font-size: 50px;
+}
+
+.menu_button {
+  font-family: "Saiyan Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+  color: yellow;
+  font-size: 40px;
+  min-width: 300px;
+  text-align: center;
+  -webkit-text-stroke: 5px black;
+  paint-order: stroke;
+  cursor: pointer;
+  border: 2px solid black;
+  border-radius: 10px;
+  margin: 10px;
+  padding: 5px 20px;
+  background-color: lightblue;
+  display: inline-block;
+}
+
+
+
+.nestStage_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.nextStage_word {
+  font-size: 100px;
+  font-weight: bold;
+}
+
+.nextStage_ball {
+  height: 100px;
+  width: 100px;
+  font-size: 100px;
+}
+
+.ball {
+  color: orange;
+  border-radius: 50%;
+  font-weight: bold;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  line-height: 1;
+  margin: 0 10px;
+  box-shadow: 0 4px 16px #fc3c 0;
+  border: 2px solid #fff8;
+}
+
+.ball.dark {
+  background:
+    radial-gradient(circle at 10px 10px, #fff 0%, #fff6 40%, transparent 70%),
+    radial-gradient(circle at 60% 60%, #e6c200 0%, #ccaa00 70%, #b38f00 100%);
+}
+
+.ball.light {
+  background:
+    radial-gradient(circle at 10px 10px, #fff 0%, #fff6 40%, transparent 70%),
+    radial-gradient(circle at 60% 60%, #fff176 0%, #ffeb3b 70%, #fdd835 100%);
+}
+
+
+.ball.glow {
+  box-shadow:
+	0 0 60px 30px rgba(255, 223, 0, 0.6),
+	0 4px 16px #fc3c;
+}
+
+
+.ball.glow {
+  animation: glowBrightness 4s infinite;
+}
+
+@keyframes glowBrightness {
+  0%, 100% {
+    filter: brightness(0.8);
+  }
+  50% {
+    filter: brightness(1.5);
+  }
+}
+
+
+#header {
+  padding: 10px 10%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ball_header {
+  height: 50px;
+  width: 50px;
+  font-size: 35px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.ball_howtoplay {
+  height: 100px;
+  width: 100px;
+  font-size: 70px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+#question {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  background-color: blue;
+}
+
+#map_container, #bukken_container, #stview_container {
+  width: 500px;
+  height: 500px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bukken_inner {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.stview_inner {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.map_inner {
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  position: relative;
+  width: 300px;
+  height: 60px;
+  overflow: hidden;
+  border: 2px solid #333;
+  margin: 10px 0;
+}
+
+.background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #e0e0e0;
+  z-index: 1;
+}
+
+.shutter {
+  position: relative;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    #aaa 0px,
+    #aaa 6px,
+    #ccc 6px,
+    #ccc 18px
+  );
+  z-index: 9;
+  transition: transform 1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.shutter.open {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+.open-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.deck {
+  width: 1000px;
+  background-color: lightyellow;
+  height: 300px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.card {
+  width: 120px;
+  height: 200px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  position: relative;
+  perspective: 600px;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, opacity 0.2s, background 0.2s;
+  border: 2px solid #444;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  margin: 0 10px;
+  background: transparent;
+}
+
+.card.selected {
+  transform: translateY(-20px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.20);
+  z-index: 1;
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  position: relative;
+  transition: transform 0.5s cubic-bezier(0.4,0.2,0.2,1);
+  transform-style: preserve-3d;
+  height: 100%;
+  width: 100%;
+}
+
+.card.faceup .card-inner {
+  transform: rotateY(0deg);
+}
+.card:not(.faceup) .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  position: absolute;
+  top: 0; left: 0;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.card-front {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  background: white;
+  z-index: 2;
+}
+
+.ui_container {
+  display: flex;
+  justify-content: center;
+  max-width: 1500px;
+  margin: 0 auto;
+  background-color: yellow;
+}
+
+.score {
+  flex: 1;
+  padding: 20px;
+  font-size: xx-large ;
+}
+
+.overlay{
+  position: fixed;
+  font-size: 300px;
+  font-weight: 900;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  pointer-events: none;
+}
+
+.clickme {
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  transform: translateX(-50%);
+  font-size: 26px;
+  padding: 18px 32px;
+  background: #fffb;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px #aaa;
+  cursor: pointer;
+  user-select: none;
+  z-index: 20;
+  transition: background 0.2s;
+}
+
+#tutorial {
+  position: fixed;
+  background: linear-gradient(#1D62F0, #05FBFF) fixed;
+  border: 10px solid white;
+  border-radius: 25px;
+  top: 10vh;
+  left: 10vw;
+  width: 80vw;
+  height: 80vh;
+  z-index: 9999;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: column;
+  display: flex;
+  gap: 10px;
+}
+
+.howToPlay {
+  font-size: 80px;
+  font-weight: bold;
+}
+
+.setumei {
+  font-size: 40px;
+}
+
+.radar {
+  z-index: 9;
+  pointer-events: none;
+  border-radius: 10%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* 子要素を完全に重ねるためrelative */
+  position: absolute;
+}
+
+.radar_grid,
+.radar_scanner,
+.radar_case {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radar_grid {
+  pointer-events: none;
+  background-color: #2802 ;
+  background-image:
+    repeating-linear-gradient(to bottom, #080 0, #080 1px, transparent 1px, transparent calc(100% / 10)),
+    repeating-linear-gradient(to right, #080 0, #080 1px, transparent 1px, transparent calc(100% / 10));
+  z-index: 1;
+}
+
+.radar_scanner {
+  background-image: conic-gradient(transparent 0deg 80%, #282);
+  animation: scan 2s linear infinite;
+  transform-origin: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.radar_case {
+  background-image: radial-gradient(
+    #0000 63%,
+    #555 64%, #fff 68%, #707070 70%,
+    #fff 71%, #fff 72%
+  );
+  z-index: 3;
+}
+
+table.items {
+  width: 450px;
+  border: 5px solid rgb(170,155,130);
+  background-color: rgb(240,240,220);
+  border-radius: 20px;
+  border-collapse: separate;
+  color : rgb(16, 16, 16);
+  font-size: 25px;
+  border-spacing: 20px 5px;
+}
+
+td.item {
+  width: 400px;
+}
+
+td.kanji {
+  width: 200px;
+  text-align:right;
+}
