@@ -79,9 +79,9 @@ app.post("/api/startGame", (req, res) => {
     // 正解の物件データの金額を計算
     let money = 0;
     for (const item of items) {
-      console.log("item[1]:", item[1]);
       money += kanjiToNumber(item[1]);                                        // 物件の金額（漢字）を数値に直して合計を求める
     }
+    console.log("total:", money);
     correctMoney.push(money);                                                 // 正解の物件の金額を配列に追加
   }
 
@@ -238,8 +238,8 @@ app.get("*", (req, res) => {
 
 
 // 漢字の金額を数値にする関数
-function kanjiToNumber(str) {
-  str = str.replace("円", "");              // 円を削除
+function kanjiToNumber(kanji) {
+  str = kanji.replace("円", "");              // 円を削除
   str += "一";                              // 末尾に「一」を追加して万未満の数値にも対応するようにする
   const units = { "兆": 1e12, "億": 1e8, "万": 1e4, "一":1 };
   let total = 0;
@@ -251,6 +251,7 @@ function kanjiToNumber(str) {
       str = arr[1];                         // 残りの部分を次の処理に渡す
     }
   }
+  console.log(kanji + "=>" + total);
   return total;
 }
 

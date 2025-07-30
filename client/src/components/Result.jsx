@@ -1,20 +1,28 @@
 import React from "react";
+import numberToKanji from "./numberToKanji";
 
 function Result({ score, results, goToTitle, onRestart }) {
+  const balls = [];
+  const styleCorrect = "ball light result-ball glow";
+  const styleWrong = "ball dark result-ball"
+  for (let i = 0; i < results.length; i++) {
+    balls.push(
+      <div key={i} className={i % 2 === 0 ? "result-ball-upper" : "result-ball-lower"}>
+        <div className={results[i] ? styleCorrect : styleWrong}>
+          {i+1}
+        </div>
+      </div>
+    );
+  }
   return (
-    <div>
-      <h2>結果発表</h2>
-      <p>あなたのスコア: {score} 点</p>
-      <h3>各問の正誤</h3>
-      <ul>
-        {results.map((v, i) => (
-          <li key={i}>
-            {i + 1}問目: {String(v)}
-          </li>
-        ))}
-      </ul>
-      <button onClick={onRestart}>もう一度挑戦する</button>
-      <button onClick={goToTitle}>タイトルに戻る</button>
+    <div id="result">
+      <div className="font-saiyan fs100 center">RESULT</div><br />
+      <div className="result-ball-container">
+        {balls}
+      </div>
+      <div className="font-saiyan fs50 center">SCORE: {numberToKanji(score)}</div><br />
+      <br />
+      <div className="menu-button fs50" onClick={goToTitle}>RETURN TO TITLE</div><br />
     </div>
   );
 }

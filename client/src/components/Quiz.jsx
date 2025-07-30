@@ -4,7 +4,7 @@ import Header from "./Header";
 import Deck from "./Deck";
 import Score from "./Score";
 import Question from "./Question";
-import Judge from "./Judge";
+import numberToKanji from "./numberToKanji";
 
 // diceIndexによりどのシャッターを開くか
 function getInitialHintOpen(diceIndex) {
@@ -22,8 +22,8 @@ function Quiz({ quiz, diceIndex, score, count, onJudge}) {
   const [bonus, setBonus] = useState(3);
   const [hintOpen, setHintOpen] = useState(getInitialHintOpen(diceIndex));
   const [answered, setAnswered] = useState(false);
-  const [judgeResult, setJudgeResult] = useState(null);
   const [judgePoint, setJudgePoint] = useState(0);
+  const [judgeMsg, setJudgeMsg] = useState("");
 
   const options = quiz.options;
   const correctIndex = quiz.correctIndex;
@@ -48,40 +48,51 @@ function Quiz({ quiz, diceIndex, score, count, onJudge}) {
 
     // すべてのヒントを開く
     setHintOpen([true, true, true]);
-    setAnswered(true);
 
     // 正誤判定
     if (idx === correctIndex) {
-      setJudgeResult("correct");
-      setJudgePoint(bonus * correctMoney);
-      // この間はonJudgeはまだ呼ばない（親の進行はJudge表示→親のuseEffectで進行）
+      setJudgePoint(correctMoney * bonus);
+      const msg1 = <div className="font-bold">正解！　ここは {options[correctIndex]} です</div>;
+      const msg2 = <>
+        <div className="align-center"><span className="font-small">物件資産</span><br />{numberToKanji(correctMoney)}</div>
+        <div> ×</div>
+        <div className="align-center"><span className="font-small">ボーナス倍率</span><br />{bonus}倍</div>
+        <div>＝ {numberToKanji(correctMoney * bonus)} 獲得！</div></>;
+      setJudgeMsg(<>{msg1}<div className="align-bottom">{msg2}</div></>);
     } else {
-      setJudgeResult("wrong");
       setJudgePoint(0);
+      const msg3 = <div className="font-bold">不正解　ここは {options[correctIndex]} です</div>;
+      setJudgeMsg(<>{msg3}</>);
     }
+
+    setAnswered(true);
   };
 
   // Judgeが表示されたあと、一定時間でonJudgeを呼ぶ
   useEffect(() => {
     let ignore = false;
     (async () => {
-      if (answered && judgeResult) {
-        await sleep(3000);
-        if (!ignore && onJudge) onJudge(judgeResult, judgePoint);
+      if (answered) {
+        await sleep(5000);
+        if (!ignore && onJudge) onJudge(judgePoint);  // 獲得した点数を親要素に返す
       }
     })();
     return () => { ignore = true; };
-  }, [answered, judgeResult, judgePoint, onJudge]);
+  }, [answered, judgePoint, onJudge]);
 
   return (
-    <div className="quiz">
+    <div id="quiz">
       <Header />
       <Question correctLatlng={latlng} correctItems={correctItems} hintOpen={hintOpen} onShowHint={handleShowHint} />
-      {!answered && <div className="ui_container">
-        <Deck options={options} correctIndex={correctIndex} onChoice={onChoice} disabled={answered} />
-        <Score score={score} count={count} bonus={bonus} />
-      </div>}
-      {answered && <Judge judge={{ result: judgeResult, point: judgePoint }} />}
+      <div className="ui-container">
+        {!answered && <>
+          <Deck options={options} correctIndex={correctIndex} onChoice={onChoice} disabled={answered} />
+          <Score score={score} count={count} bonus={bonus} />
+        </>}
+        {answered && <>
+          <div className="judge frame">{judgeMsg}</div>
+        </>}
+      </div>
     </div>
   );
 }

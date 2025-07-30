@@ -72,15 +72,8 @@ function Question({ correctLatlng, correctItems, hintOpen, onShowHint, disabled 
     if (!mapObj.current) {
       mapObj.current = new window.google.maps.Map(mapRef.current, {
         center: latlng,
-        zoom: 8,
+        zoom: 16,
         disableDefaultUI: false,
-        styles: [
-          {
-            featureType: "all",
-            elementType: "labels",
-            stylers: [{ visibility: "off" }],
-          },
-        ],
       });
       mapObj.current.addListener("click", (e) => {
         const latLng = { lat: e.latLng.lat(), lng: e.latLng.lng() };
@@ -139,7 +132,7 @@ function Question({ correctLatlng, correctItems, hintOpen, onShowHint, disabled 
     rows.push(<tr>{cells}</tr>);
   }
 
-  const tableItems = <><table className="items frame"><tbody>{rows}</tbody></table></>
+  const tableItems = <><table className="items"><tbody>{rows}</tbody></table></>
   console.log(tableItems);
 
   return (
@@ -150,7 +143,7 @@ function Question({ correctLatlng, correctItems, hintOpen, onShowHint, disabled 
         id="map_container"
         contentDiv={
           <>
-          <div ref={mapRef} className="map-inner" />
+          <div ref={mapRef} className="map_inner" />
           <div className="radar">
             <div className="radar_scanner"></div>
             <div className="radar_grid"></div>
@@ -166,7 +159,7 @@ function Question({ correctLatlng, correctItems, hintOpen, onShowHint, disabled 
         disabled={disabled}
         openImgSrc="./trans_tetu.png"
         id="bukken_container"
-        contentDiv={<><div className="bukken-inner">{tableItems}</div></>}
+        contentDiv={<><div className="bukken_inner">{tableItems}</div></>}
         isOpen={open[1]}
         onOpen={() => handleOpen(1)}
       >
@@ -175,11 +168,7 @@ function Question({ correctLatlng, correctItems, hintOpen, onShowHint, disabled 
         disabled={disabled}
         openImgSrc="./trans_guessr.png"
         id="stview_container"
-        contentDiv={ready && 
-          <div className="stview-inner">
-            <div ref={stViewRef} className="stview-inner" />
-            <div className="prefecture">{correctItems[0][2]}</div>
-          </div>}
+        contentDiv={ready && <div ref={stViewRef} className="stview_inner" />}
         isOpen={open[2]}
         onOpen={() => handleOpen(2)}
       >

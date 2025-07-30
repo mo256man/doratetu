@@ -21,7 +21,7 @@ function App() {
 
   const goToTitle = () => setScene("title");
   return (
-    <>
+    <div className="main">
       {scene === "title" && <Title onStart={startGame} />}
       {scene === "game" && (
         <Game
@@ -29,7 +29,7 @@ function App() {
           goToTitle={goToTitle}
         />
       )}
-    </>
+    </div>
   );
 }
 

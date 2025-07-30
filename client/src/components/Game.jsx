@@ -21,10 +21,8 @@ function Game({ quizData, goToTitle }) {
         if (!ignore) setStep("dice");
       }
       if (step === "judge") {
-        await sleep(100000);
         if (!ignore) {
-          console.log("count:", count);
-          if (count >= 6) {
+          if (count > 6) {
             setStep("result");
           } else {
             setStep("next");
@@ -48,8 +46,8 @@ function Game({ quizData, goToTitle }) {
   };
 
   // Quizからの判定時コールバック
-  const handleQuizJudge = (result, point) => {
-    if (result === "correct") {
+  const handleQuizJudge = (point) => {
+    if (point > 0) {
       setScore((prev) => prev + point);
       setResults(prev => [...prev, true]);
     } else {
@@ -68,7 +66,7 @@ function Game({ quizData, goToTitle }) {
   };
 
   return (
-    <>
+    <div id="game">
       {step === "next" && (
         <NextStage show={true} number={count + 1} />
       )}
@@ -87,7 +85,7 @@ function Game({ quizData, goToTitle }) {
       {step === "result" && (
         <Result score={score} results={results} goToTitle={goToTitle} onRestart={handleRestart} />
       )}
-    </>
+    </div>
   );
 }
 

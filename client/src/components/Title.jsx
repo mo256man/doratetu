@@ -8,9 +8,9 @@ function Title({ onStart }) {
     <>
       <div id="title">
         <div className="title_container">
-          <span className="font_dragon fs100">DRA</span>
+          <span className="font-saiyan fs100">DRA</span>
           <img src="./title_tetu.png" className="title_tesu" alt="title" />
-          <span className="font_guessr fs100"> GUESSR</span>
+          <span className="font-guessr fs100"> GUESSR</span>
         </div>
         <div id="header">
           <div className="ball light glow ball_header">ド</div>
@@ -22,10 +22,10 @@ function Title({ onStart }) {
           <div className="ball light glow ball_header">ー</div>
         </div>
         <br />
-        <div className="menu_button" onClick={onStart}>START</div>
-        <div className="menu_button" onClick={() => setShowTutorial(true)}>あそびかた</div>
-      </div>
-      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+        <div className="menu-button fs50" onClick={onStart}>START</div>
+        <div className="menu-button fs50" onClick={() => setShowTutorial(true)}>How to play</div>
+        {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+        </div>
     </>
   );
 }

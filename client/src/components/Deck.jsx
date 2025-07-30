@@ -22,7 +22,11 @@ function Deck({ options, correctIndex, onChoice, disabled }) {
   };
 
   return (
-    <div className="deck">
+    <div className="deck frame">
+      <div className="select-card">
+        SELECT CARD
+      </div>
+      <div className="cards">
       {options.slice(0, 6).map((label, idx) => (
         <div
           key={idx}
@@ -42,6 +46,7 @@ function Deck({ options, correctIndex, onChoice, disabled }) {
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }

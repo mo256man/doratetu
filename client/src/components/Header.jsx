@@ -1,6 +1,6 @@
 import React from "react";
 
-function Header({ goToTitle }) {
+function Header() {
   return (
     <div id="header">
       <div className="ball light ball_header">ド</div>
@@ -10,7 +10,6 @@ function Header({ goToTitle }) {
       <div className="ball light ball_header">ッ</div>
       <div className="ball light ball_header">サ</div>
       <div className="ball light ball_header">ー</div>
-      <button onClick={goToTitle}>タイトルに戻る</button>
     </div>
   );
 }

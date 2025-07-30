@@ -100,12 +100,39 @@ function Dice({ setDiceIndex }) {
     controls.target.set(2, 1, 2);
     controls.update();
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
     dirLight.position.set(8, 12, 10);
     scene.add(dirLight);
 
     const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
+
+    // 市松模様テクスチャ生成
+    function createCheckerTexture(size = 512, squares = 8) {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const squareSize = size / squares;
+      for (let y = 0; y < squares; y++) {
+        for (let x = 0; x < squares; x++) {
+          ctx.fillStyle = (x + y) % 2 === 0 ? '#fff' : '#888';
+          ctx.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
+        }
+      }
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    // 地面メッシュ（市松模様）
+    const groundGeo = new THREE.PlaneGeometry(20, 20);
+    const groundMat = new THREE.MeshPhongMaterial({
+      map: createCheckerTexture(512, 10),
+      side: THREE.DoubleSide,
+    });
+    const groundMesh = new THREE.Mesh(groundGeo, groundMat);
+    groundMesh.rotation.x = -Math.PI / 2;
+    groundMesh.position.y = 0;
+    groundMesh.receiveShadow = true;
+    scene.add(groundMesh);
 
     const ground = new CANNON.Body({ type: CANNON.Body.STATIC, shape: new CANNON.Plane() });
     ground.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
@@ -114,15 +141,18 @@ function Dice({ setDiceIndex }) {
     const textures = IMAGE_URLS.map(url => new THREE.TextureLoader().load(url));
     const materials = faceImages.map(i =>
       new THREE.MeshPhongMaterial({
-        map: textures[i],
-        transparent: true,
-        color: 0xffffff,
-        alphaTest: 0.01,
-      })
+          color: 0xffffff,
+          map: textures[i],
+          // transparent: true,
+          // alphaTest: 0.01,
+      }),
     );
 
     const diceGeo = new RoundedBoxGeometry(1, 1, 1, 8, 0.2);
     const diceMesh = new THREE.Mesh(diceGeo, materials);
+    diceMesh.castShadow = true;
+    scene.add(diceMesh);
+    diceMeshRef.current = diceMesh;
     diceMesh.castShadow = true;
     scene.add(diceMesh);
     diceMeshRef.current = diceMesh;
@@ -180,7 +210,7 @@ function Dice({ setDiceIndex }) {
           hasThrownRef.current = false;
           timeoutId.current = null;
           setSpinning();
-        }, 1400);
+        }, 2000);
       }
 
       // カメラ補間
@@ -200,7 +230,7 @@ function Dice({ setDiceIndex }) {
       renderer.domElement.remove();
       renderer.dispose();
       diceGeo.dispose();
-      materials.forEach(m => m.dispose());
+      materials.forEach(mat => mat.dispose());
       textures.forEach(t => t.dispose());
     };
   }, [setDiceIndex]);
@@ -216,8 +246,8 @@ function Dice({ setDiceIndex }) {
   }, []);
 
 return (
-  <div ref={mountRef} style={{ width: "100vw", height: "100vh", background: "#eee"}}>
-    <div className="clickme" onClick={throwDice}>click me</div>
+  <div ref={mountRef} style={{ width: "100%", height: "100%", background: "#eee"}}>
+    <div className="menu-button fs50 clickme" onClick={throwDice}>click me</div>
   </div>
 );
 }
