@@ -139,7 +139,7 @@ function Question({ correctLatlng, correctItems, hintOpen, onShowHint, disabled 
     rows.push(<tr>{cells}</tr>);
   }
 
-  const tableItems = <><table className="items frame"><tbody>{rows}</tbody></table></>
+  const tableItems = <><table className="items frame w48"><tbody>{rows}</tbody></table></>
   console.log(tableItems);
 
   return (

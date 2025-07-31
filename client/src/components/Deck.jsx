@@ -41,7 +41,7 @@ function Deck({ options, correctIndex, onChoice, disabled }) {
         >
           <div className="card-inner">
             <div className="card-front">
-              <div className="number" style={{ fontSize: 28 }}>{label}</div>
+              <div style={{ fontSize: label.length > 3 ? 30 : 36 }}>{label}</div>
             </div>
           </div>
         </div>

@@ -2,7 +2,6 @@
   outline: 1px solid red;
 } */
 
-
 html, body, #root {
   margin: 0;
   padding: 0;
@@ -15,32 +14,30 @@ body {
   justify-content: center;
   align-items: center;
   color: black;
+  font-size: 20px;
+  font-family: 'Kosugi Maru', sans-serif;
+  font-style: normal;
+  color: black;
 }
 
 
 .main {
-  aspect-ratio: 16 / 9;
-  margin: auto;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
-  background: #eee;
-  border: 2px solid red;
-}
-
-
-
-html {
-  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
-  color: black;
 }
 
 #title, #dice, #game, #nextStage, #game, #result {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  background: linear-gradient(180deg, #c9ffb0, #01b400);
+  background: linear-gradient(0deg, #31e4ff, #003e94);
   overflow: hidden;
 }
 
@@ -100,6 +97,11 @@ html {
   vertical-align: middle;
 }
 
+.momotetu40 {
+  height: 40px;
+  vertical-align: middle;
+}
+
 .title_tesu {
   height: 100px;
   width: auto;
@@ -130,10 +132,10 @@ html {
   paint-order: stroke;
   cursor: pointer;
   border: 5px solid orange;
-  border-radius: 10px;
+  border-radius: 20px;
   margin: 10px;
-  padding: 10px 30px;
-  background-color: lightblue;
+  padding: 10px 40px;
+  background-color: lightcyan;
   display: inline-block;
   line-height: 1;
   vertical-align: top;
@@ -157,7 +159,6 @@ html {
 }
 
 .ball {
-  color: orange;
   border-radius: 50%;
   font-weight: bold;
   text-align: center;
@@ -170,12 +171,14 @@ html {
 }
 
 .ball.dark {
+  color: lightcoral;
   background:
     radial-gradient(circle at 10px 10px, #fff 0%, #fff6 40%, transparent 70%),
     radial-gradient(circle at 60% 60%, #e6c200 0%, #ccaa00 70%, #b38f00 100%);
 }
 
 .ball.light {
+  color: orange;
   background:
     radial-gradient(circle at 10px 10px, #fff 0%, #fff6 40%, transparent 70%),
     radial-gradient(circle at 60% 60%, #fff176 0%, #ffeb3b 70%, #fdd835 100%);
@@ -204,13 +207,13 @@ html {
 
 
 #header {
-  width: 600px;
-  margin: 10px auto;
+  width: 500px;
+  margin: 5px auto 0 auto;
   display: flex;
   justify-content: space-between;
 }
 
-.header-howtoplay {
+.header-tutorial {
   margin: 10px auto;
   display: flex;
   justify-content: space-between;
@@ -225,10 +228,10 @@ html {
   flex-direction: column;
 }
 
-.ball-howtoplay {
-  height: 80px;
-  width: 80px;
-  font-size: 60px;
+.ball-tutorial {
+  height: 50px;
+  width: 50px;
+  font-size: 40px;
   display: flex;
   justify-content: center;
   flex-direction: column;
@@ -452,7 +455,7 @@ html {
   align-items: center;
   justify-content: center;
   max-width: 1500px;
-  margin: 20px auto;
+  margin: 0 auto;
   gap: 20px;
 }
 
@@ -474,12 +477,14 @@ html {
 }
 
 th.score {
+  white-space: nowrap;
   width: 200px;
   padding: 0 10px;
   text-align: right;
 }
 
 td.score {
+  white-space: nowrap;
   text-align: right;
 }
 
@@ -509,12 +514,12 @@ td.score {
 
 #tutorial {
   position: absolute;
-  width: 800px;
+  width: 1000px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   padding: 10px 30px;
-  background:  linear-gradient(0deg, #c9ffb0, #01b400) fixed;
+  background:  linear-gradient(180deg, #31e4ff, #003e94) fixed;
   border: 10px solid white;
   border-radius: 25px;
   z-index: 99;
@@ -522,16 +527,12 @@ td.score {
   justify-content: flex-start;
   align-items: center;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
 }
 
 .howToPlay {
   font-size: 80px;
   font-weight: bold;
-}
-
-.setumei {
-  font-size: 40px;
 }
 
 .radar {
@@ -599,18 +600,25 @@ td.score {
 }
 
 table.items {
-  width: 450px;
   background: rgb(240,240,220);
   border-collapse: separate;
   font-size: 25px;
 }
 
+table.w48{
+  width: 480px;
+}
+
+td {
+  padding: 0 10px 0 0;
+}
+
 td.item {
-  width: 400px;
+  white-space: nowrap;
 }
 
 td.kanji {
-  width: 200px;
+  white-space: nowrap;
   text-align:right;
 }
 
@@ -680,4 +688,26 @@ td.kanji {
 
 .center {
   text-align: center;
+}
+
+.left {
+  text-align: left;
+  margin: 0 auto 0 0;
+}
+
+.mo {
+  width: 50px;
+  height: 50px;
+}
+
+.credit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 50px;
+  font-size: 0.6em;
+}
+
+ul {
+  margin: 0;
 }

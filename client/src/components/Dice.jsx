@@ -1,5 +1,5 @@
 // Dice.jsx
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
@@ -34,6 +34,7 @@ function Dice({ setDiceIndex }) {
   const hasThrownRef = useRef(false);
   const timeoutId = useRef(null);
   const animId = useRef(null);
+  const [clicked, setClicked] = useState(false);
 
   const camTargetPos = useRef(new THREE.Vector3(-7, 5, 10));
   const camTargetLook = useRef(new THREE.Vector3(2, 1, 2));
@@ -239,7 +240,10 @@ function Dice({ setDiceIndex }) {
     let cancelled = false;
     async function autoRoll() {
       await sleep(3000);
-      if (!cancelled) throwDice();
+      if (!cancelled) {
+        setClicked(true);
+        throwDice();
+      }
     }
     autoRoll();
     return () => { cancelled = true; };
@@ -247,7 +251,7 @@ function Dice({ setDiceIndex }) {
 
 return (
   <div ref={mountRef} style={{ width: "100%", height: "100%", background: "#eee"}}>
-    <div className="menu-button fs50 clickme" onClick={throwDice}>click me</div>
+    <>{!clicked && <div className="menu-button fs50 clickme" onClick={() => {throwDice(); setClicked(true);}}>click me</div>}</>
   </div>
 );
 }
