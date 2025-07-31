@@ -657,8 +657,8 @@ td.kanji {
   flex-direction: column;
   align-items: center;
   background:  
-    url("/dragon.png"),
-    linear-gradient(180deg, #31e4ff, #003e94) fixed;
+    linear-gradient(0deg, #31e4ff80, #003e9480) fixed,
+    url("/dragon.png");
   background-repeat: no-repeat;
   background-position: center;
   background-size: auto;
