@@ -5,7 +5,7 @@ const axios = require("axios");
 const path = require("path");
 const app  = express();
 const PORT = 3001;
-const deployID = "AKfycbxWzQvV7mBMzodeRFzUSaIVPfjP6XViY3Q61Pj_aTxfCEWP1BYcPQjw9bxwCpxLu9nQNQ";
+const deployID = "AKfycbyxz_J9LUQ1-YBW9rzcQ6L1Y68XFWa8t811DR76RPpuE3ZrUJ1L2iXFbNlkI0U9mNhQNg";
 const GAS_URL = `https://script.google.com/macros/s/${deployID}/exec`;
 
 app.use(express.json());
@@ -34,195 +34,198 @@ async function init() {
   const response = await axios.post(GAS_URL, payload, config);
   ALL_STATIONS = response.data.all_stations;
   ALL_ITEMS = response.data.all_items;
-  ALL_STATIONS = ALL_STATIONS.slice(1);   // 先頭の見出しを削除
-  ALL_ITEMS = ALL_ITEMS.slice(1);         // 同上
+
+  // 物件について、漢字での金額から数値を取得し辞書に追加する
+  for (const item of ALL_ITEMS) {
+    item.money = kanjiToNumber(item.kanji);
+  }
+
+  // 駅について、物件の金額の計を辞書に追加する
+  for (const station of ALL_STATIONS) {
+    const name = station.name;
+    const relatedItems = ALL_ITEMS.filter(item => item.station === name);
+    let totalMoney = 0;
+    for (const item of relatedItems) {
+      totalMoney += item.money;
+    }
+    station.money = totalMoney;
+  }
   console.log("元データ取得完了");
 }
 
-
-// ゲームスタート スコアはreact側で初期化
 app.post("/api/startGame", (req, res) => {
-  const options = []
-  const correctIndex = [];
-  const correctItems = [];
-  const correctLatlng = [];
-  const correctMoney = [];
-
-  // 6つの選択肢を作成
-  const usedStations = new Set();                                           // 選択済みの駅
-  for (let i = 0; i < 7; i++) {
-    const oneOptions = [];
-    while (oneOptions.length < 6) {
-      const index = Math.floor(Math.random() * ALL_STATIONS.length);        // ランダムなインデックス
-      console.log("駅データ", ALL_STATIONS[index]);
-      const station = ALL_STATIONS[index][1];                               // 駅名
-      if (!usedStations.has(station)) {                                     // 駅名がまだ選択されていなかったら
-        oneOptions.push(station);                                           // 選択肢に追加
-        usedStations.add(station);                                          // 選択済みの駅に追加
-      }
-    }
-    console.log("選択肢:", oneOptions);
-    options.push(oneOptions);                                               // 6個1組の選択肢を配列に追加
-
-    // 正解データ
-    const index = Math.floor(Math.random() * 6);                            // 6個の選択肢のうちランダムで正解を選ぶ
-    correctIndex.push(index);                                               // 正解のインデックスを配列に追加
-    const station = oneOptions[index];                                      // 正解の駅
-    console.log("正解の駅:", station);
-    const data = ALL_STATIONS.find(row => row[1] === station);              // 正解の駅のデータ
-    console.log("data:", data);
-    correctLatlng.push({ lat: data[2], lng: data[3] });                     // 正解の緯度経度を配列に追加
-    const items = ALL_ITEMS.filter(row => row[3] === station);              // 正解の物件データ
-    correctItems.push(items);                                               // 正解の物件データを配列に追加
-    console.log("正解の物件データ:", items);
-
-    // 正解の物件データの金額を計算
-    let money = 0;
-    for (const item of items) {
-      money += kanjiToNumber(item[1]);                                        // 物件の金額（漢字）を数値に直して合計を求める
-    }
-    console.log("total:", money);
-    correctMoney.push(money);                                                 // 正解の物件の金額を配列に追加
-  }
-
-  // Reatに送るJSONデータ
-  const quizData = {
-    options: options,
-    correctIndex: correctIndex,
-    correctItems: correctItems,
-    correctLatlng: correctLatlng,
-    correctMoney: correctMoney
-  }
-
-  // データ送信
-  res.status(200).json({ quizData });
+  res.status(200).json({
+    allStations: ALL_STATIONS,
+    allItems: ALL_ITEMS
+  });
 });
 
 
+// クイズを生成してセッションに保存する（1問分）
+app.post("/api/generateQuiz", (req, res) => {
+  // 追加の呼び出しで次問を生成する（startQuiz で初期化されている想定）
+  if (!req.session.usedStations) req.session.usedStations = [];
+  if (!req.session.totalQuestions) req.session.totalQuestions = 7;
+  if (typeof req.session.currentQuestionNumber !== 'number') req.session.currentQuestionNumber = 0;
+
+  // 既にすべて出題済みなら400
+  if (req.session.currentQuestionNumber >= req.session.totalQuestions) {
+    return res.status(400).json({ error: 'All questions generated' });
+  }
+
+  const usedStations = req.session.usedStations;
+  const questionChoices = [];
+  const stationsPool = ALL_STATIONS.slice();
+
+  while (questionChoices.length < 6 && stationsPool.length > 0) {
+    const idx = Math.floor(Math.random() * stationsPool.length);
+    const station = stationsPool[idx];
+    if (!usedStations.includes(station.name)) {
+      questionChoices.push(station);
+      usedStations.push(station.name);
+    }
+    stationsPool.splice(idx, 1);
+  }
+
+  while (questionChoices.length < 6) {
+    const idx = Math.floor(Math.random() * ALL_STATIONS.length);
+    const station = ALL_STATIONS[idx];
+    questionChoices.push(station);
+  }
+
+  const correctIndex = Math.floor(Math.random() * 6);
+  const correctStation = questionChoices[correctIndex];
+  const relatedItems = ALL_ITEMS.filter(item => item.station === correctStation.name);
+
+  // セッションに現在の問題を保存（内部で正解インデックスを保持）
+  req.session.currentQuiz = {
+    questionChoices: questionChoices.map(s => s.name),
+    correctIndex,
+    correctStation,
+    relatedItems,
+  };
+
+  // 問題番号をインクリメント（1始まりで返す）
+  req.session.currentQuestionNumber = (req.session.currentQuestionNumber || 0) + 1;
+
+  res.status(200).json({
+    questionChoices: req.session.currentQuiz.questionChoices,
+    correctStation: {
+      name: correctStation.name,
+      lat: correctStation.lat,
+      lng: correctStation.lng,
+      heading: correctStation.heading || 0,
+      pitch: correctStation.pitch || 0,
+      money: correctStation.money || 0,
+    },
+    relatedItems: req.session.currentQuiz.relatedItems,
+    questionNumber: req.session.currentQuestionNumber,
+    totalQuestions: req.session.totalQuestions,
+  });
+});
 
 
+// クイズ開始：セッション初期化して第1問を返す
+app.post('/api/startQuiz', (req, res) => {
+  req.session.usedStations = [];
+  req.session.currentQuestionNumber = 0;
+  req.session.totalQuestions = 7; // 全7問
+  req.session.score = 0;
+  // delegate to generateQuiz logic by calling same generation code path
+  // We'll reuse the /api/generateQuiz logic by invoking it programmatically
+  // For simplicity, replicate generation here (avoid coupling)
+
+  const usedStations = req.session.usedStations;
+  const questionChoices = [];
+  const stationsPool = ALL_STATIONS.slice();
+
+  while (questionChoices.length < 6 && stationsPool.length > 0) {
+    const idx = Math.floor(Math.random() * stationsPool.length);
+    const station = stationsPool[idx];
+    if (!usedStations.includes(station.name)) {
+      questionChoices.push(station);
+      usedStations.push(station.name);
+    }
+    stationsPool.splice(idx, 1);
+  }
+  while (questionChoices.length < 6) {
+    const idx = Math.floor(Math.random() * ALL_STATIONS.length);
+    const station = ALL_STATIONS[idx];
+    questionChoices.push(station);
+  }
+  const correctIndex = Math.floor(Math.random() * 6);
+  const correctStation = questionChoices[correctIndex];
+  const relatedItems = ALL_ITEMS.filter(item => item.station === correctStation.name);
+  req.session.currentQuiz = {
+    questionChoices: questionChoices.map(s => s.name),
+    correctIndex,
+    correctStation,
+    relatedItems,
+  };
+  req.session.currentQuestionNumber = 1;
+
+  res.status(200).json({
+    questionChoices: req.session.currentQuiz.questionChoices,
+    correctStation: {
+      name: correctStation.name,
+      lat: correctStation.lat,
+      lng: correctStation.lng,
+      heading: correctStation.heading || 0,
+      pitch: correctStation.pitch || 0,
+      money: correctStation.money || 0,
+    },
+    relatedItems: req.session.currentQuiz.relatedItems,
+    questionNumber: req.session.currentQuestionNumber,
+    totalQuestions: req.session.totalQuestions,
+    totalScore: req.session.score,
+  });
+});
 
 
-// // ゲームスタート スコアはreact側で初期化
-// app.post("/api/startGameQ", (req, res) => {
-//   req.session.stations = ALL_STATIONS.slice(1);     // 先頭（見出し）は削除 sliceはシャローコピーだがそれでも問題ない
-//   req.session.items = ALL_ITEMS.slice(1);           // 同上
-//   res.json({ message: "started" });
-// });
+// 回答を受け取り判定する
+app.post("/api/checkAnswer", (req, res) => {
+  const { selectedIndex, bonus } = req.body;
+  const quiz = req.session.currentQuiz;
+  if (!quiz) {
+    return res.status(400).json({ error: "No quiz in session" });
+  }
 
+  const correct = Number(selectedIndex) === Number(quiz.correctIndex);
 
-// // クイズを作成
-// app.post("/api/makeQuiz", (req, res) => {
-//   // ここの方法を変える
-//   // 重複しないインデックスを取得するだけにする　そうすればセッションは不要になる
+  // ヒント倍率（クライアントと同じ配列で扱う）
+  const bouns_multiplier = [1, 0.6, 0.3];
+  const bIdx = Math.max(0, Math.min(2, Number(bonus) || 0));
+  const mult = bouns_multiplier[bIdx] || 1;
 
-//   // 7問のクイズをここで全部作成する　選択肢は6個
-//   const optionArr = [];
-//   const correctIndexArr = [];
-//   const correstStationArr = [];
-//   for (let i = 0; i < 7; i++) {
-//     // 選択肢を取得
-//     const options = [];
-//     for (let j = 0; j < 6; j++) {
-//       const cnt = req.session.stations.length;                // 残りの駅数
-//       const index = Math.floor(Math.random() * cnt);          // 駅インデックス
-//       const selectedStation = req.session.stations.splice(index, 1)[0]; // ランダムに駅を選び、セッションから削除
-//       options.push(selectedStation[1]);                       // 選択肢に駅名追加
-//     }
-//     const correctIndex = Math.floor(Math.random() * 6);       // 正解のインデックス
-//     const correstStation = req.session.options[correctIndex]; // 正解の駅名
-//     optionArr.push(options);                                  // 各問題の選択肢を配列に追加
-//     correctIndexArr.push(correctIndex);                       // 各問題の正解インデックスを配列に追加
-//     correstStationArr.push(correstStation);                   // 各問題の正解駅名を配列に追加
-//   }
+  const correctMoney = (quiz.relatedItems || []).reduce((acc, it) => acc + (it.money || 0), 0);
+  const getScore = correct ? Math.round(correctMoney * mult) : 0;
 
-//   // 正解の駅の物件データを取得
-//   const correctItemArr = [];
-//   for (const station of correstStationArr) {
-//     const correctItems = ALL_ITEMS.filter(row => row[3] === station);
-//     correctItemArr.push(correctItems);
-//   }
+  // セッションのスコアを更新
+  if (typeof req.session.score !== 'number') req.session.score = 0;
+  req.session.score += getScore;
 
-//   // 正解の駅の緯度経度を取得
-//   const correctLatlngArr = [];
-//   for (const station of correstStationArr) {
-//     const correctData = ALL_STATIONS.find(row => row[1] === station.trim());  // なぜかtrimしないと一致しない
-//     correctLatlngArr.push({ lat: correctData[2], lng: correctData[3] });
-//   }
+  const payload = {
+    correct,
+    correctStation: {
+      name: quiz.correctStation.name,
+      lat: quiz.correctStation.lat,
+      lng: quiz.correctStation.lng,
+      heading: quiz.correctStation.heading || 0,
+      pitch: quiz.correctStation.pitch || 0,
+      money: quiz.correctStation.money || 0,
+    },
+    relatedItems: quiz.relatedItems,
+    getScore,
+    totalScore: req.session.score,
+    questionNumber: req.session.currentQuestionNumber || 0,
+    totalQuestions: req.session.totalQuestions || 7,
+  };
 
-//   const quiz = {
-//     options: optionArr,
-//     correctIndexes: correctIndexArr,
-//     correctStations: correstStationArr,
-//     correctItems: correctItemArr,
-//     correctLatlngs: correctLatlngArr
-//   }
+  // 現在の問題は消す（次問は generateQuiz を呼ぶ）
+  delete req.session.currentQuiz;
 
-
-//   // データ送信
-//   res.status(200).json({ quiz });
-// });
-
-// // クイズを作成
-// app.post("/api/makeQuiz0", (req, res) => {
-//   // 選択肢を取得
-//   req.session.options = [];
-//   for (let i=0; i < 6; i++) {
-//     const cnt = req.session.stations.length;
-//     console.log("残りの駅数:", cnt);
-//     const index = Math.floor(Math.random() * cnt);
-//     console.log("選ばれたインデックス:", index);
-//     const selectedStation = req.session.stations.splice(index, 1)[0]; // ランダムに駅を選び、セッションから削除
-//     console.log("選択された駅:", selectedStation);
-//     req.session.options.push(selectedStation[1]);           // 選択肢に駅名を追加
-//   }
-//   const correctIndex = Math.floor(Math.random() * 6);       // 正解のインデックス
-//   const correstStation = req.session.options[correctIndex]; // 正解の駅名
-//   req.session.correctIndex =correctIndex;
-//   console.log("正解の駅:", correstStation);
-
-//   // 正解の駅の物件データを取得
-//   const correctItems = ALL_ITEMS.filter(row => row[3] === correstStation);
-//   req.session.items = correctItems;
-//   console.log(correstStation + "の物件データ:", correctItems);
-
-//   // 正解の駅の緯度経度を取得 セッションからではなく ALL_STATIONS から取得
-//   const correctData = ALL_STATIONS.find(row => row[1] === correstStation.trim());
-//   console.log(correstStation + "のデータ:", correctData);
-//   req.session.correctLatlng = { lat: correctData[2], lng: correctData[3] };
-//   // データ送信
-//   res.status(200).json({stations: req.session.options});
-// });
-
-
-// // セッションを取得する
-// app.post("/api/fetchSession", (req, res) => {
-//   // 数値や配列もjsonとして送る
-//   console.log("選択肢:", req.session.options);
-//   console.log("正解のインデックス:", req.session.correctIndex);
-//   const correstStation = req.session.options[req.session.correctIndex];
-//   console.log("正解の駅:", correstStation);
-//   console.log(correstStation + "の緯度経度:", req.session.correctLatlng);
-//   console.log(correstStation + "の物件:",  req.session.items);
-//   res.status(200).json({
-//     options: req.session.options,
-//     correctIndex: req.session.correctIndex,
-//     correctLatlng: req.session.correctLatlng,
-//     items: req.session.items
-//   });
-// });
-
-// // GASにPOSTし全データを取得する
-// const getAllData = async (req, res) => {
-//   const payload  = {command: "getAllData"};
-//   const config = {
-//     headers: { "Content-Type": "application/json" }
-//   };
-//   const response = await axios.post(GAS_URL, payload, config);
-//   // console.log(response.data.result)
-//   const { all_stations: all_stations, all_bukkens: all_bukkens } = response.data;
-//   return response.data.result;
-// };
+  res.status(200).json(payload);
+});
 
 
 // サーバ起動
@@ -239,7 +242,7 @@ app.get("*", (req, res) => {
 
 // 漢字の金額を数値にする関数
 function kanjiToNumber(kanji) {
-  str = kanji.replace("円", "");              // 円を削除
+  let str = kanji.replace("円", "");        // 円を削除
   str += "一";                              // 末尾に「一」を追加して万未満の数値にも対応するようにする
   const units = { "兆": 1e12, "億": 1e8, "万": 1e4, "一":1 };
   let total = 0;
@@ -251,7 +254,7 @@ function kanjiToNumber(kanji) {
       str = arr[1];                         // 残りの部分を次の処理に渡す
     }
   }
-  console.log(kanji + "=>" + total);
+  // console.log(kanji + "=>" + total);
   return total;
 }
 

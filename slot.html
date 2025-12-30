@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>スロットマシン（1リール）</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    .reel {
+      width: 200px;
+      height: 100px;
+      overflow: hidden;
+      border: 2px solid #000;
+      font-size: 32px;
+      text-align: left;
+      position: relative;
+      background: #fff;
+      margin: 0 auto;
+    }
+    .reel-inner {
+      position: absolute;
+      top: 0;
+      width: 100%;
+    }
+    .reel-inner div {
+      height: 100px;
+      line-height: 100px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="reel" id="reel"></div>
+  <button onclick="startSlot()">スタート</button>
+
+  <script>
+    const symbols = ["🍒　さくらんぼ", "🍋　レモン", "🔔　ベル", "⭐　スター", "7️⃣　セブン"];
+    const spinDuration = 2000;
+
+    function createReelContent(reel) {
+      const inner = document.createElement("div");
+      inner.className = "reel-inner";
+      for (let i = 0; i < 20; i++) {
+        const symbol = document.createElement("div");
+        symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        inner.appendChild(symbol);
+      }
+      reel.innerHTML = "";
+      reel.appendChild(inner);
+    }
+
+    function startSlot() {
+      const reel = document.getElementById("reel");
+      createReelContent(reel);
+      const inner = reel.querySelector(".reel-inner");
+      const totalHeight = inner.scrollHeight - reel.clientHeight;
+      inner.style.transition = "none";
+      inner.style.top = "0px";
+
+      setTimeout(() => {
+        inner.style.transition = `top ${spinDuration}ms ease-out`;
+        inner.style.top = `-${totalHeight}px`;
+      }, 50);
+    }
+  </script>
+</body>
+</html>

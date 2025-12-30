@@ -1,9 +1,11 @@
+// Dice.jsx
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import * as CANNON from "cannon-es";
-import { sleep } from "./utils";
+import sleep from "./sleep";
+import "../styles.css";
 
 const IMAGE_URLS = ["./dice_dr.png", "./dice_tetu.png", "./dice_guessr.png"];
 const faceNormals = [
@@ -24,14 +26,12 @@ const faceUps = [
 ];
 const faceImages = [0, 0, 1, 1, 2, 2];
 
-function Dice ({status, cnt, onFinish, setDiceIndex}) {
-  const [showCount, setShowCount] = useState(true);
+function Dice({ setDiceIndex }) {
   const mountRef = useRef();
   const diceMeshRef = useRef();
   const diceBodyRef = useRef();
   const spinningAngleRef = useRef(0);
   const hasThrownRef = useRef(false);
-  const finishCalledRef = useRef(false);
   const timeoutId = useRef(null);
   const animId = useRef(null);
   const [clicked, setClicked] = useState(false);
@@ -44,8 +44,6 @@ function Dice ({status, cnt, onFinish, setDiceIndex}) {
   const throwDice = () => {
     if (hasThrownRef.current) return;
     hasThrownRef.current = true;
-    // 投擲開始時に finish フラグをリセット
-    finishCalledRef.current = false;
 
     const body = diceBodyRef.current;
     body.type = CANNON.Body.DYNAMIC;
@@ -83,8 +81,6 @@ function Dice ({status, cnt, onFinish, setDiceIndex}) {
     body.angularVelocity.setZero();
     body.position.set(3, 1, 3);
     body.quaternion = getSpinningQuaternion(spinningAngleRef.current);
-    // 次の投擲で onFinish を再度許可する
-    finishCalledRef.current = false;
   };
 
   useEffect(() => {
@@ -215,11 +211,6 @@ function Dice ({status, cnt, onFinish, setDiceIndex}) {
           hasThrownRef.current = false;
           timeoutId.current = null;
           setSpinning();
-          // onFinish の多重呼び出しを防ぐ
-          if (!finishCalledRef.current) {
-            finishCalledRef.current = true;
-            onFinish();
-          }
         }, 2000);
       }
 
@@ -248,10 +239,7 @@ function Dice ({status, cnt, onFinish, setDiceIndex}) {
   useEffect(() => {
     let cancelled = false;
     async function autoRoll() {
-      const audio = new Audio("/tukamouze.mp3");
-      await audio.play();
-      await sleep(1500);
-      setShowCount(false);
+      await sleep(3000);
       if (!cancelled) {
         setClicked(true);
         throwDice();
@@ -261,18 +249,11 @@ function Dice ({status, cnt, onFinish, setDiceIndex}) {
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    return () => console.log("Dice unmounted");
-  }, []);
-
-  return <>
-    <div className="dice frame" ref={mountRef}>
-    {/* <>{!clicked && <div className="menu-button fs50 clickme" onClick={() => {throwDice(); setClicked(true);}}>click me</div>}</> */}
-    {showCount &&
-      <div className="count">第<div className="ball light ball-count">{cnt}</div>問</div>
-    }
-    </div>
-  </>
+return (
+  <div ref={mountRef} style={{ width: "100%", height: "100%", background: "#eee"}}>
+    <>{!clicked && <div className="menu-button fs50 clickme" onClick={() => {throwDice(); setClicked(true);}}>click me</div>}</>
+  </div>
+);
 }
 
 export default Dice;

@@ -29,15 +29,15 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyCqAJnZ7H3ZLuBJD-GKBuHYikJPcsbf68E";
 
 function ContentDiv({ disabled, openImgSrc, id, isOpen, onOpen, contentDiv }) {
   return (
-    <div id={id} className="content-div">
-      <div className="content-area">
+    <div id={id} className="question">
+      <div>
         {contentDiv}
       </div>
       <div className={`shutter${isOpen ? " open" : ""}`}
           onClick={disabled ? undefined : onOpen}
           style={{ cursor: disabled ? "not-allowed" : "pointer" }}>
           <img
-            className="open-label"
+            className="shutter-label"
             src={openImgSrc}
             style={{
               opacity: disabled ? 0.5 : 1,
@@ -50,100 +50,99 @@ function ContentDiv({ disabled, openImgSrc, id, isOpen, onOpen, contentDiv }) {
   );
 }
 
-function Question({ correctLatlng, correctItems, hintOpen, onShowHint, disabled = false }) {
+// function Question({ correctLatlng, correctItems, hintOpen, onShowHint, disabled = false }) {
+// function Question({ correctData, correctItems, correctStation, hintOpen, onShowHint, disabled = false }) {
+function Question({ questionProps }) {
   const called = useRef(false);
   useEffect(() => {
       if (called.current) return;
       called.current = true;
       // ここまで、開発時に2回レンダリングされるのを防ぐためのフラグ
-  }, []);
+      console.log("Question props:", questionProps);
+  }, [questionProps]);
 
-  const [open, setOpen] = useState(() => [false, false, false]);
-  const [latlng, setLatlng] = useState(correctLatlng);
-  const ready = useGoogleMaps(GOOGLE_MAPS_API_KEY);
+  let {
+      correctData,
+      correctItems,
+      correctStation,
+      hintOpen,
+      setHintOpen,
+      disabled,
+  } = questionProps || {};
 
+  // デフォルト値の設定
+  hintOpen = hintOpen ?? [false, false, false];
+  disabled = disabled ?? false;
+  correctItems = correctItems || [];
+  correctData = correctData || {};
   const mapRef = useRef(null);
   const stViewRef = useRef(null);
   const mapObj = useRef(null);
   const stViewObj = useRef(null);
+  const [open, setOpen] = useState([false, false, false]);  // ヒントの初期状態：全閉
 
-  useEffect(() => {
-    if (!ready || !open[0] || !mapRef.current) return;
-    if (!mapObj.current) {
-      mapObj.current = new window.google.maps.Map(mapRef.current, {
-        center: latlng,
-        zoom: 8,
-        disableDefaultUI: false,
-        styles: [
-          {
-            featureType: "all",
-            elementType: "labels",
-            stylers: [{ visibility: "off" }],
-          },
-        ],
-      });
-      mapObj.current.addListener("click", (e) => {
-        const latLng = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-        setLatlng(latLng);
-      });
-    }
-    mapObj.current.setCenter(latlng);
-  }, [ready, open[0], latlng]);
+  console.log(hintOpen);
 
-  useEffect(() => {
-    if (!ready || !open[2] || !stViewRef.current) return;
-    if (!stViewObj.current) {
-      stViewObj.current = new window.google.maps.StreetViewPanorama(stViewRef.current, {
-        position: latlng,
-        pov: { heading: 0, pitch: 0 },
-        disableDefaultUI: false,
-      });
-      stViewObj.current.addListener("position_changed", () => {
-        const pos = stViewObj.current.getPosition();
-        if (pos) {
-          const newLatLng = { lat: pos.lat(), lng: pos.lng() };
-          setLatlng(prev => {
-            if (prev.lat !== newLatLng.lat || prev.lng !== newLatLng.lng) {
-              return newLatLng;
-            }
-            return prev;
-          });
-        }
-      });
-    }
-    stViewObj.current.setPosition(latlng);
-  }, [ready, open[2], latlng]);
-
-  useEffect(() => {
-    if (open[0] && mapObj.current) mapObj.current.setCenter(latlng);
-    if (open[2] && stViewObj.current) stViewObj.current.setPosition(latlng);
-  }, [latlng, open[0], open[2]]);
-
-  useEffect(() => {
-    setOpen(hintOpen);
+  // 初期状態は全て閉じていて、親から渡された hintOpen に応じて自動で開く
+  React.useEffect(() => {
+    setOpen(prev => prev.map((v, i) => v || hintOpen[i]));
   }, [hintOpen]);
 
+  // クリックしたらシャッターが開く
   const handleOpen = idx => {
-    if (open[idx]) return; // すでに開いているなら何もしない
-    setOpen(prev => prev.map((v, i) => (i === idx ? true : v)));
-    if (onShowHint) onShowHint(idx);
+    if (open[idx]) return;         // すでに開いているなら何もしない
+    setOpen(prev => {
+      const next = [...prev];
+      next[idx] = true;
+      return next;
+    });
+    // 親の hintOpen 状態も更新
+    if (typeof setHintOpen === 'function') {
+      setHintOpen(prev => {
+        const next = [...prev];
+        next[idx] = true;
+        return next;
+      });
+    }
   };
 
-  const rows = [];
-  console.log(correctItems);
-  console.log(typeof correctItems);
-  console.log("isArray:", Array.isArray(correctItems));
-
-  for (const row of correctItems) {
-    const cells = <><td className="item">{row[0]}</td><td className="kanji">{row[1]}</td></>;
-    rows.push(<tr>{cells}</tr>);
+  // マップ
+  const mapContent = () => {
+    const lat = correctData.lat;
+    const lng = correctData.lng;
+    const latlng = {lat: lat, lng: lng};
+    // console.log("latlng", latlng);
+    return (<>
+        {lat} {lng}
+    </>);
   }
 
-  const tableItems = <><table className="items frame w48"><tbody>{rows}</tbody></table></>
-  console.log(tableItems);
+  // 物件
+  console.log("correctItems:", correctItems);
+  const itemsContent = (
+    <table className="frame items">
+      <tbody>
+        {correctItems.map((object, index) =>
+          <tr key={index}><td className="item">{object.item}</td><td className="kanji">{object.kanji}</td></tr>
+        )}
+      </tbody>
+    </table>
+  );
+
+  // ストリートビュー
+  const stviewContent = () => {
+    const pitch = correctData.pitch;
+    const heading = correctData.heading;
+    return (<>
+        {pitch} {heading}
+    </>);
+  }
+
+  const Div = (content) =>
+    <div className="question">{content}</div>
 
   return (
-    <div id="question" style={{ display: "flex", flexDirection: "row", gap: 12 }}>
+    <div className="questions">
       <ContentDiv
         disabled={disabled}
         openImgSrc="./trans_dr.png"
@@ -166,7 +165,7 @@ function Question({ correctLatlng, correctItems, hintOpen, onShowHint, disabled 
         disabled={disabled}
         openImgSrc="./trans_tetu.png"
         id="bukken_container"
-        contentDiv={<><div className="bukken-inner">{tableItems}</div></>}
+        contentDiv={<><div className="bukken-inner">{itemsContent}</div></>}
         isOpen={open[1]}
         onOpen={() => handleOpen(1)}
       >
@@ -175,10 +174,10 @@ function Question({ correctLatlng, correctItems, hintOpen, onShowHint, disabled 
         disabled={disabled}
         openImgSrc="./trans_guessr.png"
         id="stview_container"
-        contentDiv={ready && 
+        contentDiv={true &&
           <div className="stview-inner">
             <div ref={stViewRef} className="stview-inner" />
-            <div className="prefecture">{correctItems[0][2]}</div>
+            <div className="prefecture">{correctStation["ken"]}</div>
           </div>}
         isOpen={open[2]}
         onOpen={() => handleOpen(2)}
